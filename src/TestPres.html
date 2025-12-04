@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Les Tests Unitaires - JS / React</title>
+  <style>
+    :root{
+      --bg: #0b0c0f;
+      --surface: #111318;
+      --surface-2: #151821;
+      --text: #e7e9ee;
+      --muted: #a7adbb;
+      --line: #252a36;
+      --accent: #7c8cff;  /* soft indigo */
+      --accent-2:#a78bfa; /* soft purple */
+      --ok:#2fbf71;
+      --ko:#ef5b5b;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family: var(--sans);
+      background: radial-gradient(1200px 700px at 10% -10%, #15193a 0%, transparent 60%),
+                  radial-gradient(900px 600px at 110% 0%, #1b1030 0%, transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      min-height:100vh;
+    }
+
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .presentation{
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 6px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .slide{
+      padding: 56px 64px;
+      min-height: 610px;
+      display:none;
+      animation: fade .35s ease;
+    }
+    .slide.active{display:block;}
+
+    @keyframes fade{
+      from{opacity:0;transform:translateY(10px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+
+    /* Headings */
+    h1{
+      font-size: 2.35rem;
+      font-weight: 700;
+      letter-spacing: .2px;
+      margin-bottom: 10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    h1 .chip{
+      font-size:.85rem;
+      font-weight:600;
+      color: var(--muted);
+      border:1px solid var(--line);
+      padding:6px 10px;
+      border-radius:999px;
+      background: var(--surface-2);
+    }
+    h2{
+      font-size: 1.5rem;
+      font-weight: 650;
+      color: var(--muted);
+      margin-top: 6px;
+      margin-bottom: 18px;
+    }
+    h3{
+      font-size:1.2rem;
+      font-weight:650;
+      margin: 18px 0 10px;
+      color: var(--text);
+    }
+
+    p{
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 1.04rem;
+      margin-bottom: 12px;
+    }
+    .muted{color:var(--muted);}
+
+    ul{margin: 12px 0 12px 20px;}
+    li{
+      line-height: 1.65;
+      font-size: 1.02rem;
+      color: var(--text);
+      margin-bottom: 7px;
+    }
+    code{
+      font-family: var(--mono);
+      font-size: .97em;
+      background: #0e1118;
+      padding: 2px 6px;
+      border:1px solid var(--line);
+      border-radius: 6px;
+      color:#d7dbef;
+    }
+
+    .code-block{
+      background: #0c0f15;
+      border: 1px solid var(--line);
+      padding: 18px 18px;
+      border-radius: var(--radius-sm);
+      margin: 12px 0 18px;
+      overflow-x: auto;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+    .code-block code{
+      background: transparent;
+      border:none;
+      padding:0;
+      font-size: .98rem;
+      line-height: 1.6;
+      white-space: pre;
+      display:block;
+      color:#e6e9f7;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .card{
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      padding: 16px 18px;
+      border-radius: var(--radius);
+    }
+    .card.ok{border-left: 4px solid var(--ok);}
+    .card.ko{border-left: 4px solid var(--ko);}
+
+    .quote{
+      margin-top: 14px;
+      background: #0d1017;
+      border:1px dashed var(--line);
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .highlight{
+      color: #ffffff;
+      background: rgba(124,140,255,.12);
+      border: 1px solid rgba(124,140,255,.30);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 650;
+    }
+
+    /* Images */
+    .img-wrap{
+      margin: 14px 0 6px;
+      background: #0c0f15;
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+    .img-wrap img{
+      width: 100%;
+      height: auto;
+      border-radius: calc(var(--radius) - 6px);
+      display:block;
+    }
+    .img-caption{
+      margin-top: 8px;
+      font-size: .95rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Controls */
+    .controls{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 16px 20px;
+      background: #0d0f14;
+      border-top:1px solid var(--line);
+      gap:12px;
+    }
+    .slide-counter{
+      font-size:.95rem;
+      color:var(--muted);
+    }
+    button{
+      background: transparent;
+      color: var(--text);
+      border:1px solid var(--line);
+      padding: 10px 16px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor:pointer;
+      transition: .2s ease;
+    }
+    button:hover{
+      border-color: rgba(124,140,255,.6);
+      box-shadow: 0 0 0 3px rgba(124,140,255,.12);
+      transform: translateY(-1px);
+    }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+
+    @media (max-width: 900px){
+      .slide{padding: 34px 28px; min-height:unset;}
+      h1{font-size: 1.9rem;}
+      .grid-2{grid-template-columns: 1fr;}
+      .controls{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="presentation">
+
+      <!-- Slide 1 -->
+      <section class="slide active">
+        <h1>Les Tests Unitaires <span class="chip">JavaScript / React</span></h1>
+        <p class="muted" style="font-size:1.1rem;margin-top:8px;">
+          Un guide simple pour tester et sécuriser votre code.
+        </p>
+        <div style="margin-top:64px;">
+          <p style="font-size:1.25rem;">
+            Objectif : comprendre <span class="highlight">quoi tester</span>, <span class="highlight">pourquoi</span>, et <span class="highlight">comment</span>.
+          </p>
+          <p class="muted" style="margin-top:18px;">
+            Utilisez <strong>Suivant</strong> pour avancer.
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 2 -->
+      <section class="slide">
+        <h1>1) Définition</h1>
+        <p>
+          Un <strong>test unitaire</strong> vérifie qu'une <span class="highlight">petite unité de code</span> fonctionne correctement
+          <span class="highlight">de manière isolée</span>.
+        </p>
+
+        <h3>Une unité peut être :</h3>
+        <ul>
+          <li>Une fonction (<code>sum</code>, <code>formatDate</code>, etc.)</li>
+          <li>Un hook (<code>useFetch</code>, <code>useCounter</code>)</li>
+          <li>Un composant React simple (<code>Hello</code>, <code>Button</code>, etc.)</li>
+        </ul>
+
+        <div class="quote">
+          L'idée : prouver que cette unité fait exactement ce qu'on attend.
+        </div>
+      </section>
+
+      <!-- Slide 3 -->
+      <section class="slide">
+        <h1>2) Pourquoi des tests unitaires ?</h1>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>a) Détecter les bugs tôt</h3>
+            <p>Tu trouves les erreurs pendant le développement, pas en production.</p>
+          </div>
+
+          <div class="card">
+            <h3>b) Éviter les régressions</h3>
+            <p>Un test qui échoue te signale qu'un comportement ancien a été cassé.</p>
+          </div>
+
+          <div class="card">
+            <h3>c) Gagner du temps</h3>
+            <p>Au lieu de vérifier à la main, tu lances <code>npm test</code>.</p>
+          </div>
+
+          <div class="card">
+            <h3>d) Refactor sereinement</h3>
+            <p>Si les tests passent, le comportement reste correct.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 4 -->
+      <section class="slide">
+        <h1>3) Test manuel vs Test unitaire</h1>
+
+        <div class="grid-2">
+          <div class="card ko">
+            <h3>Test manuel (<code>npm start</code>)</h3>
+            <ul>
+              <li>Tu ouvres la page</li>
+              <li>Tu cliques</li>
+              <li>Tu valides visuellement</li>
+            </ul>
+            <p style="color:var(--ko); font-weight:700; margin-top:10px;">
+              Lent, incomplet, non reproductible.
+            </p>
+          </div>
+
+          <div class="card ok">
+            <h3>Test unitaire (<code>npm test</code>)</h3>
+            <ul>
+              <li>Automatique</li>
+              <li>Mêmes scénarios à chaque run</li>
+              <li>Résultat immédiat</li>
+            </ul>
+            <p style="color:var(--ok); font-weight:700; margin-top:10px;">
+              Rapide, fiable, reproductible.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 5 -->
+      <section class="slide">
+        <h1>4) Structure d'un test (AAA)</h1>
+
+        <div style="margin-top:10px;">
+          <div class="card" style="margin-bottom:12px;">
+            <h3>1. <span class="highlight">Arrange</span></h3>
+            <p>Préparer le contexte : données, objets, mocks.</p>
+          </div>
+
+          <div class="card" style="margin-bottom:12px;">
+            <h3>2. <span class="highlight">Act</span></h3>
+            <p>Exécuter l’action : appeler la fonction / interagir.</p>
+          </div>
+
+          <div class="card">
+            <h3>3. <span class="highlight">Assert</span></h3>
+            <p>Vérifier le résultat attendu.</p>
+          </div>
+        </div>
+
+        <div class="quote">Base de la majorité des tests unitaires.</div>
+      </section>
+
+      <!-- Slide 6 -->
+      <section class="slide">
+        <h1>5) Exemple : Tester une fonction</h1>
+
+        <h3>Code à tester : <code>sum.js</code></h3>
+        <div class="code-block">
+          <code>export function sum(a, b) {
+  return a + b;
+}</code>
+        </div>
+
+        <h3>Test : <code>sum.test.js</code></h3>
+        <div class="code-block">
+          <code>import { sum } from "./sum";
+
+test("sum adds two numbers", () => {
+  expect(sum(2, 3)).toBe(5);
+});</code>
+        </div>
+
+        <div class="quote">
+          Quand j'appelle <code>sum(2,3)</code>, je dois obtenir 5.
+        </div>
+      </section>
+
+      <!-- Slide 7 (Image 1) -->
+      <section class="slide">
+        <h1>Image 1 : Tests multiples</h1>
+
+        <div class="img-wrap">
+          <img src="WhatsApp Image 2025-12-04 at 15.45.43.jpeg" alt="Tests multiples pour sum" />
+        </div>
+        <div class="img-caption">
+          Plusieurs tests unitaires : cas positifs, négatifs, etc.
+        </div>
+
+        <div class="quote">
+          Chaque <code>test("...")</code> vérifie un comportement précis.
+        </div>
+      </section>
+
+      <!-- Slide 8 -->
+      <section class="slide">
+        <h1>6) Exemple React : Composant</h1>
+
+        <h3>Composant : <code>Hello.jsx</code></h3>
+        <div class="code-block">
+          <code>export function Hello({ name }) {
+  return &lt;h1&gt;Hello {name}&lt;/h1&gt;;
+}</code>
+        </div>
+
+        <h3>Test : <code>Hello.test.jsx</code></h3>
+        <div class="code-block">
+          <code>import { render, screen } from "@testing-library/react";
+import { Hello } from "./Hello";
+
+test("shows the name", () => {
+  render(&lt;Hello name="Badr" /&gt;);
+  expect(screen.getByText("Hello Badr"))
+    .toBeInTheDocument();
+});</code>
+        </div>
+      </section>
+
+      <!-- Slide 9 (Image 2) -->
+      <section class="slide">
+        <h1>Interprétation du test React</h1>
+
+        <ul style="font-size:1.05rem;">
+          <li><code>render(...)</code> → affiche le composant</li>
+          <li><code>getByText("Hello Badr")</code> → cherche le texte</li>
+          <li><code>toBeInTheDocument()</code> → le texte doit exister</li>
+        </ul>
+
+        <div class="img-wrap" style="margin-top:14px;">
+          <img src="95ecbc17-1c0c-4f9d-8417-34de114cbccb.png" alt="Résultat PASS dans le terminal" />
+        </div>
+        <div class="img-caption">
+          Résultat dans le terminal : <strong style="color:var(--ok);">PASS</strong>.
+        </div>
+      </section>
+
+      <!-- Slide 10 -->
+      <section class="slide">
+        <h1>7) Tester App ne teste pas tout</h1>
+
+        <p>Si tu fais juste :</p>
+        <div class="code-block">
+          <code>render(&lt;App /&gt;);</code>
+        </div>
+
+        <p>Tu testes seulement : App ne crash pas.</p>
+
+        <div class="card" style="margin-top:10px;">
+          <h3>Pour tester ce qu'il y a dedans :</h3>
+          <p>Il faut écrire des assertions (<code>expect(...)</code>) sur ce que l'utilisateur doit voir ou faire.</p>
+        </div>
+
+        <div class="quote">
+          Petits composants → tests unitaires séparés.  
+          <br/>App → tests légers (intégration).
+        </div>
+      </section>
+
+      <!-- Slide 11 (Image 3) -->
+      <section class="slide">
+        <h1>Image 3 : Fichiers de test</h1>
+
+        <div class="img-wrap">
+          <img src="9c0ada5f-285d-4b93-8405-1ac0ac124086.png" alt="Fichiers sum.test.js et Hello.test.js" />
+        </div>
+        <div class="img-caption">
+          Jest détecte automatiquement les fichiers <code>*.test.js(x)</code>.
+        </div>
+
+        <div class="quote">
+          Ils sont trouvés et exécutés automatiquement.
+        </div>
+      </section>
+
+      <!-- Slide 12 -->
+      <section class="slide">
+        <h1>8) Où apparaissent les erreurs ?</h1>
+
+        <p>Quand tu lances <code>npm test</code> :</p>
+        <ul>
+          <li>Les résultats apparaissent dans le terminal / VS Code</li>
+          <li>Tu vois :
+            <ul>
+              <li>Le nom du test en échec</li>
+              <li>Le fichier + la ligne</li>
+              <li>Attendu vs obtenu</li>
+            </ul>
+          </li>
+        </ul>
+
+        <div class="card ko" style="margin-top:10px;">
+          <p>Si le code casse avant d'entrer dans un test :</p>
+          <p style="color:var(--ko); font-weight:700;">
+            “Test suite failed to run” et 0 tests exécutés.
+          </p>
+        </div>
+      </section>
+
+      <!-- Slide 13 -->
+      <section class="slide">
+        <h1>9) Règles d'or (Best Practices)</h1>
+
+        <div style="margin-top:8px;">
+          <div class="card" style="margin-bottom:12px;">
+            <h3>1 test = 1 comportement</h3>
+            <p>Un test doit viser une seule attente claire.</p>
+          </div>
+
+          <div class="card" style="margin-bottom:12px;">
+            <h3>Nommer clairement</h3>
+            <p>Ex : “affiche un message si champ vide”.</p>
+          </div>
+
+          <div class="card" style="margin-bottom:12px;">
+            <h3>Tester l'expérience utilisateur</h3>
+            <p>Ce que l'utilisateur voit et fait.</p>
+          </div>
+
+          <div class="card">
+            <h3>Préférer plusieurs tests simples</h3>
+            <p>Plutôt qu’un gros test compliqué.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 14 -->
+      <section class="slide">
+        <h1>Conclusion</h1>
+
+        <h2 style="margin-top:12px;">Les tests unitaires sont :</h2>
+
+        <div style="margin-top:12px; font-size:1.08rem;">
+          <p>✅ Un filet de sécurité automatique</p>
+          <p>✅ Rapides et fiables</p>
+          <p>✅ Évitent les régressions</p>
+          <p>✅ Indispensables quand le projet grandit</p>
+        </div>
+
+        <div class="quote" style="margin-top:18px;">
+          Prêt à tester ton premier composant ?
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button id="prevBtn" onclick="changeSlide(-1)">← Précédent</button>
+        <div class="slide-counter">
+          <span id="currentSlide">1</span> / <span id="totalSlides">14</span>
+        </div>
+        <button id="nextBtn" onclick="changeSlide(1)">Suivant →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    document.getElementById('totalSlides').textContent = totalSlides;
+
+    function showSlide(n) {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (n + totalSlides) % totalSlides;
+      slides[currentSlide].classList.add('active');
+
+      document.getElementById('currentSlide').textContent = currentSlide + 1;
+      document.getElementById('prevBtn').disabled = currentSlide === 0;
+      document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+    }
+
+    function changeSlide(direction) {
+      showSlide(currentSlide + direction);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' && currentSlide > 0) changeSlide(-1);
+      if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) changeSlide(1);
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>
